@@ -35,18 +35,19 @@ Client → API Gateway → Upload Lambda → S3 → MediaPipe Lambda
 
 ## 📂 Project Structure
 
+```text
 hand-detection-app/
 ├── template.yaml
 ├── samconfig.toml
 ├── upload_lambda_app/
-│ ├── app.py
-│ └── requirements.txt
+│   ├── app.py
+│   └── requirements.txt
 ├── mediapipe_lambda_app/
-│ ├── app.py
-│ ├── requirements.txt
-│ └── Dockerfile
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
 └── README.md
-
+```
 
 
 ---
@@ -95,16 +96,66 @@ For learning or development, AdministratorAccess is recommended.
 
 🏗 Build and Deploy
 Step 1: Clone the repository
+
+```bash
 git clone https://github.com/<your-username>/hand-detection-app.git
 cd hand-detection-app
+```
+Step 2: Build the application, This builds both the ZIP-based upload Lambda and the Docker image for the MediaPipe Lambda.
 
-Step 2: Build the application
-
+```bash
 sam build --use-container
+```
+
+Step 3: Deploy to AWS
+```bash
+sam deploy --guided
+```
+During setup:
+
+- Stack name: hand-detection-app
+- Region: choose your region
+- Bucket-Name: 
+- Allow SAM to create IAM roles: Yes
+- Create managed ECR repositories: Yes
+
+🌐 Get API Endpoint
+
+After deployment, run:
+```bash
+sam list endpoints --stack-name hand-detection-app
+```
+
+Use this sample code to upload an image through an API
+```bash
+
+import requests
+import base64, json
+
+# 🔹 Replace with your API Gateway URL
+API_URL=""
+# 🔹 Path to image you want to upload
+IMAGE_PATH = ""
+
+with open(IMAGE_PATH, "rb") as f:
+    img_bytes = f.read()
 
 
-This builds both:
+# Encode image as base64
+img_b64 = base64.b64encode(img_bytes).decode("utf-8")
 
-The ZIP-based upload Lambda
+# Send JSON payload with isBase64Encoded flag
+payload = {
+    "body": img_b64,
+    "isBase64Encoded": True
+}
 
-The Docker image for the MediaPipe Lambda
+headers = {
+    "Content-Type": "application/json"
+}
+
+response = requests.post(API_URL, headers=headers, data=json.dumps(payload))
+print("Status Code:", response.status_code)
+print("Response:", response.text)
+```
+
