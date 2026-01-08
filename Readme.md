@@ -15,7 +15,7 @@ Flow of the application:
 3. Image is stored in an S3 bucket under `uploads/`
 4. S3 event triggers the MediaPipe Lambda (container-based)
 5. MediaPipe performs hand detection on the image
-6. Results are logged and returned through the API
+6. The output image will be save in s3 bucket under `results/`
 
 Client → API Gateway → Upload Lambda → S3 → MediaPipe Lambda
 
@@ -79,17 +79,12 @@ Make sure the following are installed:
 
 Your IAM user or role must allow:
 
-CloudFormation
-
-IAM
-
-Lambda
-
-S3
-
-API Gateway
-
-ECR
+- CloudFormation
+- IAM
+- Lambda
+- S3
+- API Gateway
+- ECR
 
 For learning or development, AdministratorAccess is recommended.
 
