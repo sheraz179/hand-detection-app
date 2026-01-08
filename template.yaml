@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Hand Detection Application (Upload + MediaPipe)
+
+Parameters:
+  UploadBucketName:
+    Type: String
+    Description: S3 bucket name for uploaded images
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+
+Resources:
+
+  # -------------------------
+  # S3 Bucket (RESOURCE)
+  # -------------------------
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref UploadBucketName
+      # Add this to ensure proper dependency order
+    DependsOn: MediaPipeFunctionPermission
+
+  # -------------------------
+  # Upload API Lambda
+  # -------------------------
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.9
+      Handler: app.lambda_handler
+      CodeUri: upload_lambda_app/
+      Environment:
+        Variables:
+          UPLOAD_BUCKET: !Ref UploadBucketName
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref UploadBucketName
+      Events:
+        UploadApi:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
+
+  # -------------------------
+  # MediaPipe Lambda Function
+  # -------------------------
+  MediaPipeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: MediaPipe Hand Detection
+      PackageType: Image
+      Timeout: 60
+      MemorySize: 2048
+      Environment:
+        Variables:
+          UPLOAD_BUCKET: !Ref UploadBucketName
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref UploadBucketName
+        - S3WritePolicy:
+            BucketName: !Ref UploadBucketName
+
+
+      Events:
+        S3Upload:
+          Type: S3
+          Properties:
+            Bucket: !Ref UploadBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: uploads/
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: mediapipe_lambda_app
+
+  # -------------------------
+  # Explicit Permission for S3 to invoke Lambda
+  # -------------------------
+  MediaPipeFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MediaPipeFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:s3:::${UploadBucketName}'
+
+Outputs:
+  UploadApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/upload'
+  
+  MediaPipeFunctionArn:
+    Description: MediaPipe Lambda Function ARN
+    Value: !GetAtt MediaPipeFunction.Arn
+  
+  UploadBucketName:
+    Description: S3 Bucket Name
+    Value: !Ref UploadBucket

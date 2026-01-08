@@ -1,0 +1,19 @@
+# SAM build output
+.aws-sam/
+
+# SAM config
+samconfig.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
