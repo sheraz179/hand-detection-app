@@ -89,20 +89,20 @@ Your IAM user or role must allow:
 For learning or development, AdministratorAccess is recommended.
 
 
-🏗 Build and Deploy
-Step 1: Clone the repository
+## 🏗 Build and Deploy
+### Step 1: Clone the repository
 
 ```bash
 git clone https://github.com/<your-username>/hand-detection-app.git
 cd hand-detection-app
 ```
-Step 2: Build the application, This builds both the ZIP-based upload Lambda and the Docker image for the MediaPipe Lambda.
+### Step 2: Build the application, This builds both the ZIP-based upload Lambda and the Docker image for the MediaPipe Lambda.
 
 ```bash
 sam build --use-container
 ```
 
-Step 3: Deploy to AWS
+### Step 3: Deploy to AWS
 ```bash
 sam deploy --guided
 ```
@@ -114,13 +114,14 @@ During setup:
 - Allow SAM to create IAM roles: Yes
 - Create managed ECR repositories: Yes
 
-🌐 Get API Endpoint
+### 🌐 Get API Endpoint
 
 After deployment, run:
 ```bash
 sam list endpoints --stack-name hand-detection-app
 ```
 
+### Sample code
 Use this sample code to upload an image through an API
 ```bash
 
